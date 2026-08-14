@@ -30,7 +30,7 @@ utilizando recursos de mapas dinâmicos e navegação web.
 <h2>🌐 Demonstração Online</h2>
 
 <p>
-🔗 https://trilhasapp2024.firebaseapp.com/
+🔗 <a href="https://trilhasapp2024.firebaseapp.com/" target="_blank">https://trilhasapp2024.firebaseapp.com/</a>
 </p>
 
 ---
@@ -38,10 +38,12 @@ utilizando recursos de mapas dinâmicos e navegação web.
 <h2>🧠 Funcionalidades</h2>
 
 <ul>
-  <li>🗺️ Visualização interativa de mapas</li>
-  <li>📍 Geolocalização e navegação de trilhas</li>
-  <li>🧭 Interface intuitiva e responsiva</li>
-  <li>☁️ Hospedagem utilizando Firebase</li>
+  <li>🗺️ Visualização interativa de mapas com camadas topográficas</li>
+  <li>📍 Geolocalização em tempo real e rastreamento do usuário</li>
+  <li>🚶‍♂️ Gravação e persistência de novas trilhas no Cloud Firestore</li>
+  <li>🧭 Interface intuitiva, responsiva e com menu lateral retrátil</li>
+  <li>🔐 Autenticação de usuários, perfil customizado e avatares emoji</li>
+  <li>☁️ Hospedagem em nuvem utilizando Firebase</li>
 </ul>
 
 ---
@@ -49,11 +51,12 @@ utilizando recursos de mapas dinâmicos e navegação web.
 <h2>🛠️ Tecnologias Utilizadas</h2>
 
 <ul>
-  <li>HTML</li>
-  <li>CSS</li>
-  <li>JavaScript</li>
-  <li>Leaflet.js</li>
-  <li>Firebase Hosting</li>
+  <li><strong>HTML5:</strong> Estruturação semântica e templates modulares</li>
+  <li><strong>CSS3:</strong> Estilização responsiva e componentes de interface</li>
+  <li><strong>JavaScript (ES Modules):</strong> Lógica cliente em módulos nativos</li>
+  <li><strong>Leaflet.js & OpenTopoMap:</strong> Renderização e manipulação do mapa interativo</li>
+  <li><strong>Firebase:</strong> Authentication e Cloud Firestore</li>
+  <li><strong>Firebase Hosting:</strong> Publicação e deploy contínuo</li>
 </ul>
 
 ---
@@ -63,13 +66,16 @@ utilizando recursos de mapas dinâmicos e navegação web.
 <pre>
 trail-map/
 │── app/
-│── assets/
-│── docs/
-│── lib/
-│── user/
-│── index.html
-│── main.css
-│── main.js
+│   ├── app.html         # Template do mapa e menu lateral
+│   └── app.js           # Lógica do mapa e gravação de trilhas
+│── assets/              # Documentos e diagramas de classe
+│── docs/                # Banners e materiais de apresentação
+│── lib/                 # Módulos utilitários (auth, firestore, dialogs, wait)
+│── user/                # Controladores de usuário e perfis
+│── index.html           # Página inicial da aplicação
+│── main.css             # Folha de estilos global
+│── main.js              # Ponto de entrada
+└── README.md            # Documentação do projeto
 </pre>
 
 ---
@@ -77,10 +83,10 @@ trail-map/
 <h2>🎯 Objetivos do Projeto</h2>
 
 <ul>
-  <li>Aplicar conceitos de desenvolvimento web</li>
-  <li>Utilizar mapas interativos em aplicações reais</li>
-  <li>Explorar integração com geolocalização</li>
-  <li>Desenvolver uma aplicação completa para fins acadêmicos</li>
+  <li>Aplicar conceitos de desenvolvimento web moderno e modular</li>
+  <li>Utilizar mapas interativos em aplicações do mundo real</li>
+  <li>Explorar integração contínua com serviços de geolocalização via GPS</li>
+  <li>Desenvolver uma aplicação completa para fins acadêmicos e práticos</li>
 </ul>
 
 ---
@@ -94,7 +100,7 @@ incluindo documentação, banner e apresentação acadêmica.
 
 <p>
 📄 <strong>TCC Completo:</strong><br>
-🔗 https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing
+🔗 <a href="https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing" target="_blank">https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing</a>
 </p>
 
 ---
