@@ -70,25 +70,51 @@ tr:has(td):hover {
 
 #userMenu {
     height: 2.5rem;
-    font-size: 1rem;
-    border-radius: 2rem 2rem;
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 1;
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-#userMenu > span {
-    color: white;
-    text-shadow: 1px 1px grey;
-}
-#userButton > img {
-    height: 1rem;
+#userMenu > span#currentUser:not(:empty) {
+    color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 0.35rem 0.85rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-shadow: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 #userButton {
     height: 2.5rem;
     width: 2.5rem;
-    font-size: 1rem;
-    border-radius: 2rem 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+#userButton > img {
+    width: 1.6rem;
+    height: 1.6rem;
+    display: block;
+    object-fit: contain;
 }
 .tabsMenu > button {
     background-color: lightgrey;
@@ -111,32 +137,203 @@ tr:has(td):hover {
 #bMenu {
     height: 2.5rem;
     width: 2.5rem;
-    font-size: 1rem;
-    border-radius: 2rem 2rem;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
     position: absolute;
     top: 10px;
     left: 10px;
-    z-index: 2;
+    z-index: 11;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+}
+
+#userMenu {
+    height: 2.5rem;
+    font-size: 1rem;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#menuBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 9;
+    display: none;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.2s ease;
 }
 
 #menu {
-    padding: 0.5rem;
-    padding-top: 3.5rem;
+    padding: 0.8rem;
+    padding-top: 4rem;
     font-size: 1rem;
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    z-index: 1;
+    width: 280px;
+    max-width: 85vw;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 10;
     background-color: white;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.3);
+}
+
+#gravandoBadge {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(220, 38, 38, 0.95);
+    color: white;
+    padding: 0.45rem 1.1rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    z-index: 8;
+    animation: badgePulse 1.8s infinite alternate;
+    white-space: nowrap;
+}
+
+@keyframes badgePulse {
+    from { transform: translateX(-50%) scale(1); }
+    to { transform: translateX(-50%) scale(1.03); }
+}
+
+#bCentralizar {
+    height: 2.5rem;
+    width: 2.5rem;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    bottom: 25px;
+    right: 15px;
+    z-index: 8;
+    background-color: white;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+#bCentralizar:hover {
+    transform: scale(1.08);
 }
 
 #bEncerra {
-    height: 2.5rem;
-    font-size: 1rem;
-    border-radius: 2rem 2rem;
+    height: 2.7rem;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: white;
+    background-color: #d32f2f;
+    border: none;
+    border-radius: 2rem;
+    padding: 0 1.2rem;
     position: absolute;
-    bottom: 10px;
-    right: 10px;
-    z-index: 2;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 8;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#bEncerra:hover {
+    background-color: #b71c1c;
+}
+
+/* Marcador do jogador customizado */
+.player-marker {
+    width: 36px;
+    height: 36px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+    border: 2px solid #2196F3;
+    animation: playerPulse 2s infinite ease-in-out;
+}
+
+@keyframes playerPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.6), 0 3px 8px rgba(0, 0, 0, 0.35);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(33, 150, 243, 0), 0 3px 8px rgba(0, 0, 0, 0.35);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0), 0 3px 8px rgba(0, 0, 0, 0.35);
+    }
+}
+
+/* Lista de trilhas */
+.trilha-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 6px 0;
+}
+
+.trilha-item > button.btn-trilha {
+    flex: 1;
+    text-align: left;
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.3rem;
+    border: 1px solid #ccc;
+    background: #fdfdfd;
+    font-size: 0.9rem;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+
+.trilha-item > button.btn-trilha:hover {
+    background: #eef5fc;
+    border-color: #2196F3;
+}
+
+.trilha-item > button.btn-delete {
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 0.3rem;
+    padding: 0.45rem 0.5rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.15s ease;
+}
+
+.trilha-item > button.btn-delete:hover {
+    background: #fdd;
 }

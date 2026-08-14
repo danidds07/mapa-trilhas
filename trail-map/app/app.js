@@ -3,6 +3,7 @@ import { firebase } from "../lib/firebase.js";
 import { userController } from "../user/userController.js";
 import { wait } from "../lib/wait.js";
 import { firestore } from "../lib/firestore.js";
+import { dialogs } from "../lib/dialogs.js";
 
 /* Javascript - app/app.js */
 export const app = {
@@ -10,7 +11,11 @@ export const app = {
     verticesTrilha: [],
     linhaTrilha: null,
     mapeando: false,
-    currentZoom: 18,
+    currentZoom: 17,
+    lastCoordsLoaded: null,
+    lastTrilhasLoadTime: 0,
+    distanciaTotal: 0,
+    seguindoPlayer: true,
 
     /**
      * Init controller
@@ -37,88 +42,143 @@ export const app = {
             //Initialize controllers
             await userController.init(this.firebase.auth);
 
-            //Initialize controllers
             //Load 'app.html'
             let html = document.createElement("div");
             html.innerHTML = await (await fetch("app/app.html")).text();
 
             //Add HTML elements from 'app.html'
             this.bMenu = html.querySelector("#bMenu");
+            this.menuBackdrop = html.querySelector("#menuBackdrop");
             this.bEncerra = html.querySelector("#bEncerra");
             this.menu = html.querySelector("#menu");
             this.userMenu = html.querySelector("#userMenu");
             this.map = html.querySelector("#mapa");
+            this.gravandoBadge = html.querySelector("#gravandoBadge");
+            this.distanciaPercorrida = html.querySelector("#distanciaPercorrida");
+            this.bCentralizar = html.querySelector("#bCentralizar");
+
+            document.body.appendChild(this.map);
+            document.body.appendChild(this.menuBackdrop);
             document.body.appendChild(this.userMenu);
             document.body.appendChild(this.bMenu);
+            document.body.appendChild(this.gravandoBadge);
+            document.body.appendChild(this.bCentralizar);
             document.body.appendChild(this.bEncerra);
             document.body.appendChild(this.menu);
-            document.body.appendChild(this.map);
 
             this.bEncerra.style.display = "none";
             this.menu.style.display = "none";
+            this.bCentralizar.style.display = "none";
 
-            //Botão menu
-            this.bMenu.onclick = () => {
-                this.menu.style.display = this.menu.style.display !== "none" ? "none" : "block";
+            //Função para abrir/fechar o menu lateral com backdrop
+            this.toggleMenu = (abrir) => {
+                const aberto = (abrir !== undefined) ? abrir : (this.menu.style.display === "none");
+                this.menu.style.display = aberto ? "block" : "none";
+                this.menuBackdrop.style.display = aberto ? "block" : "none";
             };
+
+            //Botão menu e backdrop
+            this.bMenu.onclick = () => this.toggleMenu();
+            this.menuBackdrop.onclick = () => this.toggleMenu(false);
+
+            //Botão de centralizar no jogador
+            this.bCentralizar.onclick = () => {
+                this.seguindoPlayer = true;
+                this.bCentralizar.style.display = "none";
+                const pos = this.player.getLatLng();
+                if (pos.lat !== 0 || pos.lng !== 0) {
+                    this.mapa.setView(pos, this.currentZoom);
+                }
+            };
+
             //Botão p/ iniciar o mapeamento da trilha
-            this.menu.querySelectorAll("button")[0].onclick = () => {
-                if (confirm("Você deseja iniciar o mapeamento de uma nova trilha?")) {
-                    this.menu.style.display = "none";
-                    this.menu.querySelectorAll("button")[0].style.display = "none";
+            this.btnNovaTrilha = this.menu.querySelectorAll("button")[0];
+            this.btnNovaTrilha.onclick = async () => {
+                //Verifica se o usuário está logado
+                if (this.firebase.auth.currentUser() === null) {
+                    this.toggleMenu(false);
+                    await dialogs.alert("Para criar e gravar trilhas, é necessário estar logado.<br>Por favor, faça login ou crie uma conta!");
+                    await userController.showLoginForm();
+                    return;
+                }
+
+                if (await dialogs.confirm("Deseja iniciar o mapeamento de uma nova trilha?<br><small style='color:#555;'>Você pode caminhar ou clicar no mapa para registrar os pontos.</small>")) {
+                    this.toggleMenu(false);
+                    this.btnNovaTrilha.style.display = "none";
                     this.bEncerra.style.display = "block";
+                    this.gravandoBadge.style.display = "flex";
+                    this.distanciaTotal = 0;
+                    this.distanciaPercorrida.innerText = "0 m";
                     this.mapeando = true;
                     if (this.linhaTrilha !== null) {
                         this.mapa.removeLayer(this.linhaTrilha);
+                        this.linhaTrilha = null;
                     }
                     this.verticesTrilha = [];
-                    this.verticesTrilha.push(this.player.getLatLng());
+                    const playerPos = this.player.getLatLng();
+                    if (playerPos.lat !== 0 || playerPos.lng !== 0) {
+                        this.verticesTrilha.push(playerPos);
+                    }
                 }
             };
+
             //Botão p/ encerrar o mapeamento da trilha
             this.bEncerra.onclick = async () => {
-                //Grava no BD
-                if (this.verticesTrilha.length >= 5) {
-                    let titulo = prompt("Digite um título para a trilha:");
-                    if (titulo !== null) {
-                        let medLat = 0;
-                        let medLng = 0;
-                        for (let i = 0; i < this.verticesTrilha.length; i++) {
-                            medLat += this.verticesTrilha[i].lat;
-                            medLng += this.verticesTrilha[i].lng;
-                        }
-                        medLat /= this.verticesTrilha.length;
-                        medLng /= this.verticesTrilha.length;
+                if (this.verticesTrilha.length >= 2) {
+                    let titulo = await dialogs.prompt("Digite um título para a trilha:", "text");
+                    if (titulo !== null && titulo.trim() !== "") {
+                        wait.show();
+                        try {
+                            let medLat = 0;
+                            let medLng = 0;
+                            for (let i = 0; i < this.verticesTrilha.length; i++) {
+                                medLat += this.verticesTrilha[i].lat;
+                                medLng += this.verticesTrilha[i].lng;
+                            }
+                            medLat /= this.verticesTrilha.length;
+                            medLng /= this.verticesTrilha.length;
 
-                        let data = {
-                            titulo: titulo,
-                            lat: medLat.toFixed(6),
-                            lng: medLng.toFixed(6),
-                            vertices: JSON.stringify(this.verticesTrilha)
-                        }
-                        await firestore.add("trilha", data);
-                        alert("A trilha " + titulo + " foi gravada com sucesso.");
-
-                        
-                    } else  {
-                        if (this.linhaTrilha !== null) {
-                            this.mapa.removeLayer(this.linhaTrilha);
-                            this.linhaTrilha = null;
-                            this.verticesTrilha = [];
+                            let currentUser = this.firebase.auth.currentUser();
+                            let data = {
+                                titulo: titulo.trim(),
+                                lat: medLat.toFixed(6),
+                                lng: medLng.toFixed(6),
+                                vertices: JSON.stringify(this.verticesTrilha),
+                                userId: currentUser ? currentUser.uid : null,
+                                userEmail: currentUser ? currentUser.email : null,
+                                createdAt: new Date().toISOString()
+                            };
+                            let docRef = await firestore.add("trilha", data);
+                            await dialogs.alert("A trilha <b>" + titulo + "</b> foi gravada com sucesso!");
+                            await this.getTrilhas();
+                        } catch (err) {
+                            await dialogs.alert("Erro ao gravar a trilha: " + err);
+                        } finally {
+                            wait.hide();
                         }
                     }
-                    this.menu.querySelectorAll("button")[0].style.display = "block";
+                    // Limpa o traçado azul temporário do mapa e reseta os vértices
+                    if (this.linhaTrilha !== null) {
+                        this.mapa.removeLayer(this.linhaTrilha);
+                        this.linhaTrilha = null;
+                    }
+                    this.verticesTrilha = [];
+                    this.btnNovaTrilha.style.display = "block";
                     this.bEncerra.style.display = "none";
+                    this.gravandoBadge.style.display = "none";
+                    this.distanciaTotal = 0;
                     this.mapeando = false;
                 } else {
-                    if(!confirm("ERRO: Falha ao gravar a trilha, percorra um trajeto maior!\n\nVocê deseja continuar mapeando a trilha?")){
+                    if (!await dialogs.confirm("A trilha precisa de pelo menos 2 pontos registrados.<br><br>Deseja continuar mapeando (clique no mapa ou caminhe para adicionar pontos)?")) {
                         if (this.linhaTrilha !== null) {
                             this.mapa.removeLayer(this.linhaTrilha);
                             this.linhaTrilha = null;
                             this.verticesTrilha = [];
                         }
-                        this.menu.querySelectorAll("button")[0].style.display = "block";
+                        this.btnNovaTrilha.style.display = "block";
                         this.bEncerra.style.display = "none";
+                        this.gravandoBadge.style.display = "none";
+                        this.distanciaTotal = 0;
                         this.mapeando = false;
                     }
                 }
@@ -137,40 +197,73 @@ export const app = {
             //Function on firebase authentication state changed
             this.firebase.auth.authStateChanged(() => this.refreshMenu());
 
-            //Inicia o mapa
-            this.mapa = L.map('mapa', { zoomControl: false, attributionControl: false });
-            //Define o tipo de mapa
-            /*
-            const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            // const tiles = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-                minZoom: 18,
-                maxZoom: 20,
-                attribution: ''
+            //Inicia o mapa com limites corretos de zoom para o OpenTopoMap
+            this.mapa = L.map('mapa', { 
+                zoomControl: false, 
+                attributionControl: true,
+                minZoom: 10,
+                maxZoom: 17
+            });
+            //Posiciona os botões de zoom no canto inferior esquerdo
+            L.control.zoom({ position: 'bottomleft' }).addTo(this.mapa);
+
+            //Define a camada OpenTopoMap
+            const tiles = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                minZoom: 10,
+                maxZoom: 17,
+                subdomains: ['a', 'b', 'c'],
+                attribution: '© OpenTopoMap (CC-BY-SA)'
             });
             tiles.addTo(this.mapa);
-            */
-            const tiles = L.tileLayer('http://{s}.google.com/vt?lyrs=s,h&x={x}&y={y}&z={z}', {
-                minZoom: 17,
-                maxZoom: 20,
-                subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+
+            //Clique no mapa: fecha menu ou adiciona ponto se estiver mapeando
+            this.mapa.on("click", (evt) => {
+                if (this.menu.style.display !== "none") {
+                    this.toggleMenu(false);
+                    return;
+                }
+                if (this.mapeando) {
+                    this.adicionarPontoTrilha(evt.latlng);
+                }
             });
-            tiles.addTo(this.mapa);
+
+            //Quando o usuário arrasta o mapa manualmente, desativa o seguimento automático
+            this.mapa.on("dragstart", () => {
+                this.seguindoPlayer = false;
+                this.bCentralizar.style.display = "flex";
+            });
 
             //Define a posição do mapa pela geolocalização
             this.mapa.locate({ watch: true, enableHighAccuracy: true });
 
-            //Marcador do jogador
-            this.player = new L.Marker([0, 0]);
+            //Marcador do jogador customizado com ícone de bússola
+            const playerIcon = L.divIcon({
+                className: 'player-icon-wrapper',
+                html: '<div class="player-marker">🧭</div>',
+                iconSize: [36, 36],
+                iconAnchor: [18, 18],
+                popupAnchor: [0, -20]
+            });
+            this.player = new L.Marker([0, 0], { icon: playerIcon });
             this.player.addTo(this.mapa);
 
             //Ao finalizar o zoom 
-            this.mapa.on("zoomend", (evt) => {
-                this.currentZoom = this.mapa.getZoom();
+            this.mapa.on("zoomend", () => {
+                this.currentZoom = Math.min(Math.max(this.mapa.getZoom(), 10), 17);
             });
+
+            //Tratamento de erro caso geolocalização seja negada ou falhe
+            this.mapa.on("locationerror", (err) => {
+                console.warn("Geolocalização indisponível:", err.message);
+            });
+
             //Atualiza a posição do marcador player
             this.mapa.on("locationfound", (evt) => {
-                this.mapa.setView(evt.latlng, this.currentZoom);
+                if (this.seguindoPlayer) {
+                    this.mapa.setView(evt.latlng, this.currentZoom);
+                }
                 this.player.setLatLng(evt.latlng);
+
                 let latDir = evt.latlng.lat === 0 ? "" : evt.latlng.lat > 0 ? "N" : "S";
                 let latDeg = Math.abs(evt.latlng.lat);
                 let latMin = (latDeg - parseInt(latDeg)) * 60;
@@ -192,79 +285,165 @@ export const app = {
                                 <tr><td><b>Latitude graus: </b> <td>${latDeg}°${latMin}'${latSec}'' ${latDir}<br>
                                 <tr><td><b>Longitude graus: </b><td>${lngDeg}°${lngMin}'${lngSec}'' ${lngDir}<br>
                             </table>`);
+
+                //Mapeamento automático via GPS em movimento (>= 3m)
                 if (this.mapeando && (this.verticesTrilha.length === 0 || evt.latlng.distanceTo(this.verticesTrilha[this.verticesTrilha.length - 1]) >= 3)) {
-                    if (this.linhaTrilha !== null) this.mapa.removeLayer(this.linhaTrilha);
-                    this.verticesTrilha.push(evt.latlng);
-                    this.linhaTrilha = new L.polyline(this.verticesTrilha);
-                    this.linhaTrilha.addTo(this.mapa);
+                    this.adicionarPontoTrilha(evt.latlng);
                 }
                 
-                this.getTrilhas();
+                //Só recarrega trilhas se o jogador se moveu mais de 50 metros ou passou mais de 30s
+                const now = Date.now();
+                if (!this.lastCoordsLoaded || evt.latlng.distanceTo(this.lastCoordsLoaded) >= 50 || (now - this.lastTrilhasLoadTime > 30000)) {
+                    this.lastCoordsLoaded = evt.latlng;
+                    this.lastTrilhasLoadTime = now;
+                    this.getTrilhas();
+                }
             });
 
         } catch (error) {
             alert(error);
-            //console.log(error);
         } finally {
             wait.hide();
         }
         // **** End Initialize app ****
     }, //init
 
+    adicionarPontoTrilha(latlng) {
+        if (this.verticesTrilha.length > 0) {
+            const distSeg = latlng.distanceTo(this.verticesTrilha[this.verticesTrilha.length - 1]);
+            this.distanciaTotal += distSeg;
+            const distStr = this.distanciaTotal >= 1000 
+                ? (this.distanciaTotal / 1000).toFixed(2) + " km" 
+                : Math.round(this.distanciaTotal) + " m";
+            this.distanciaPercorrida.innerText = distStr;
+        }
+        this.verticesTrilha.push(latlng);
+        if (this.linhaTrilha !== null) this.mapa.removeLayer(this.linhaTrilha);
+        this.linhaTrilha = new L.polyline(this.verticesTrilha, {
+            color: '#2196F3',
+            weight: 4,
+            opacity: 0.85,
+            dashArray: '8, 8'
+        });
+        this.linhaTrilha.addTo(this.mapa);
+    },
+
     refreshMenu() {
         let user = firebase.auth.currentUser();
         if (user === null) {
             //Menu de login (Usuário não autenticado)
             this.userMenu.querySelector("#currentUser").innerHTML = "";
-            this.userMenu.querySelector("button > img").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>";
-            this.menu.querySelectorAll("button")[0].style.display = "none";
+            this.userMenu.querySelector("button > img").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
         } else {
             //Menu de logout (Usuário já autenticado)
             this.userMenu.querySelector("#currentUser").innerHTML = user.displayName ? user.displayName : user.email;
-            this.userMenu.querySelector("button > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>";
-            this.menu.querySelectorAll("button")[0].style.display = "block";
+            this.userMenu.querySelector("button > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
         }
     }, //refreshMenu
 
     async getTrilhas() {
         //Obtém a div para exibir as trilhas
         let trilhasProx = document.querySelector("#trilhasProx");
+        if (!trilhasProx) return;
         trilhasProx.innerHTML = "";
         //Obtém as coordenadas do jogador
         let coord = this.player.getLatLng();
         //Obtém as trilhas próximas
-        this.trilhas = await firestore.loadCollection("trilha"//,
-            //{ field: "lng", operator: ">=", value: (coord.lng - 0.1) }//,
-            //{ field: "lng", operator: "<=", value: (coord.lng + 0.1) }
-        );
-        //this.trilhas = await firestore.loadCollection("trilha");
+        this.trilhas = await firestore.loadCollection("trilha");
 
-        console.log(coord);
-        console.log(Object.keys(this.trilhas));
+        let encontrou = false;
         for(let id in this.trilhas) {
             let trilha = this.trilhas[id];
             if(trilha.lat >= (coord.lat - 0.1) && trilha.lat <= (coord.lat + 0.1)) {
+                encontrou = true;
+                let itemDiv = document.createElement("div");
+                itemDiv.className = "trilha-item";
+
                 let button = document.createElement("button");
-                button.innerHTML = trilha.titulo;
-                button.style.width = "100%";
-                button.onclick = () => this.showTrilha(id);
-                trilhasProx.appendChild(button);
+                button.className = "btn-trilha";
+                button.innerHTML = "📍 " + trilha.titulo;
+                button.title = "Visualizar trilha " + trilha.titulo;
+                button.onclick = () => {
+                    this.showTrilha(id);
+                    this.toggleMenu(false);
+                };
+
+                let delButton = document.createElement("button");
+                delButton.className = "btn-delete";
+                delButton.innerHTML = "🗑️";
+                delButton.title = "Excluir trilha " + trilha.titulo;
+                delButton.onclick = () => this.deleteTrilha(id, trilha.titulo);
+
+                itemDiv.appendChild(button);
+                itemDiv.appendChild(delButton);
+                trilhasProx.appendChild(itemDiv);
             } else {
                 delete(this.trilhas[id]);
             }
         }
-        //console.log(this.trilhas);
+
+        if (!encontrou) {
+            trilhasProx.innerHTML = "<p style='font-size:0.85rem;color:#888;text-align:center;margin:10px 0;'>Nenhuma trilha próxima encontrada.<br><small>Clique em 'Nova Trilha' para criar a primeira!</small></p>";
+        }
+    },
+
+    async deleteTrilha(id, titulo) {
+        if (await dialogs.confirm(`Deseja excluir permanentemente a trilha <b>${titulo}</b>?`)) {
+            try {
+                wait.show();
+                await firestore.del("trilha", id);
+                if (this.linhaTrilha !== null) {
+                    this.mapa.removeLayer(this.linhaTrilha);
+                    this.linhaTrilha = null;
+                }
+                await this.getTrilhas();
+                await dialogs.alert(`A trilha <b>${titulo}</b> foi excluída com sucesso.`);
+            } catch (err) {
+                await dialogs.alert("Erro ao excluir trilha: " + err);
+            } finally {
+                wait.hide();
+            }
+        }
     },
 
     showTrilha(id) {
         let trilha = this.trilhas[id];
-        console.log(trilha);
+        if (!trilha) return;
         if (this.linhaTrilha !== null) this.mapa.removeLayer(this.linhaTrilha);
-        this.linhaTrilha = new L.polyline(JSON.parse(trilha.vertices));
-        this.linhaTrilha.setStyle({
-            color: 'red'
-        });
         
+        const vertices = JSON.parse(trilha.vertices);
+        this.linhaTrilha = new L.polyline(vertices, {
+            color: '#E53935',
+            weight: 4,
+            opacity: 0.9
+        });
         this.linhaTrilha.addTo(this.mapa);
+
+        //Calcula distância total da trilha
+        let distTotal = 0;
+        for (let i = 1; i < vertices.length; i++) {
+            distTotal += L.latLng(vertices[i]).distanceTo(L.latLng(vertices[i - 1]));
+        }
+        const distStr = distTotal >= 1000 
+            ? (distTotal / 1000).toFixed(2) + " km" 
+            : Math.round(distTotal) + " m";
+
+        //Popup com detalhes da trilha
+        this.linhaTrilha.bindPopup(`
+            <div style="font-family:sans-serif;min-width:140px;padding:2px;">
+                <h4 style="margin:0 0 6px 0;color:#d32f2f;">📍 ${trilha.titulo}</h4>
+                <div style="font-size:0.85rem;line-height:1.5;">
+                    <b>Distância:</b> ${distStr}<br>
+                    <b>Pontos GPS:</b> ${vertices.length}
+                </div>
+            </div>
+        `).openPopup();
+
+        //Enquadra a trilha no mapa e mostra o botão de recentralizar
+        if (vertices.length > 0) {
+            this.mapa.fitBounds(this.linhaTrilha.getBounds(), { padding: [50, 50] });
+            this.seguindoPlayer = false;
+            this.bCentralizar.style.display = "flex";
+        }
     }
 }; //app

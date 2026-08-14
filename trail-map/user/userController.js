@@ -96,7 +96,7 @@ export const userController = {
             let user = this.auth.auth.currentUser;
             if(user !== null) {
                 form.querySelector("div > div").innerHTML = user.displayName ? user.displayName : user.email;
-                form.querySelector("div > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>";
+                form.querySelector("div > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
             }
             dialog.appendChild(form);
 
