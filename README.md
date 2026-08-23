@@ -1,42 +1,30 @@
 <h1 align="center">🗺️ Sistema de Mapeamento de Trilhas</h1>
-
 <p align="center">
   Aplicação web interativa para mapeamento de trilhas com geolocalização,
   desenvolvida utilizando HTML, CSS, JavaScript, Leaflet e Firebase.
 </p>
-
 <p align="center">
   <img src="https://img.shields.io/badge/frontend-HTML%20%7C%20CSS%20%7C%20JS-blue?style=for-the-badge">
   <img src="https://img.shields.io/badge/status-concluído-success?style=for-the-badge">
   <img src="https://img.shields.io/badge/deploy-Firebase-orange?style=for-the-badge">
 </p>
-
 ---
-
 <h2>🚀 Sobre o Projeto</h2>
-
 <p>
-O Sistema de Mapeamento de Trilhas é uma aplicação web interativa desenvolvida como projeto acadêmico (TCC),
-com foco em navegação, geolocalização e visualização de trilhas em mapas interativos.
+Aplicação web para explorar trilhas em mapas interativos, com foco em navegação
+e geolocalização em tempo real.
 </p>
-
 <p>
-O sistema permite aos usuários explorar trilhas de forma intuitiva,
-utilizando recursos de mapas dinâmicos e navegação web.
+O sistema permite ao usuário visualizar trilhas em um mapa dinâmico e acompanhar
+sua própria posição enquanto navega.
 </p>
-
 ---
-
 <h2>🌐 Demonstração Online</h2>
-
 <p>
 🔗 <a href="https://trilhasapp2024.firebaseapp.com/" target="_blank">https://trilhasapp2024.firebaseapp.com/</a>
 </p>
-
 ---
-
 <h2>🧠 Funcionalidades</h2>
-
 <ul>
   <li>🗺️ Visualização interativa de mapas com camadas topográficas</li>
   <li>📍 Geolocalização em tempo real e rastreamento do usuário</li>
@@ -45,11 +33,8 @@ utilizando recursos de mapas dinâmicos e navegação web.
   <li>🔐 Autenticação de usuários, perfil customizado e avatares emoji</li>
   <li>☁️ Hospedagem em nuvem utilizando Firebase</li>
 </ul>
-
 ---
-
 <h2>🛠️ Tecnologias Utilizadas</h2>
-
 <ul>
   <li><strong>HTML5:</strong> Estruturação semântica e templates modulares</li>
   <li><strong>CSS3:</strong> Estilização responsiva e componentes de interface</li>
@@ -58,11 +43,8 @@ utilizando recursos de mapas dinâmicos e navegação web.
   <li><strong>Firebase:</strong> Authentication e Cloud Firestore</li>
   <li><strong>Firebase Hosting:</strong> Publicação e deploy contínuo</li>
 </ul>
-
 ---
-
 <h2>📂 Estrutura do Projeto</h2>
-
 <pre>
 trail-map/
 │── app/
@@ -77,36 +59,26 @@ trail-map/
 │── main.js              # Ponto de entrada
 └── README.md            # Documentação do projeto
 </pre>
-
 ---
-
 <h2>🎯 Objetivos do Projeto</h2>
-
 <ul>
-  <li>Aplicar conceitos de desenvolvimento web moderno e modular</li>
-  <li>Utilizar mapas interativos em aplicações do mundo real</li>
-  <li>Explorar integração contínua com serviços de geolocalização via GPS</li>
-  <li>Desenvolver uma aplicação completa para fins acadêmicos e práticos</li>
+  <li>Aplicar conceitos de desenvolvimento web modular, com HTML, CSS e JS em módulos nativos</li>
+  <li>Usar a Geolocation API do navegador para rastrear a posição do usuário em tempo real</li>
+  <li>Integrar mapas interativos (Leaflet.js) com um banco de dados em nuvem (Cloud Firestore)</li>
+  <li>Entregar uma aplicação funcional como Trabalho de Conclusão de Curso</li>
 </ul>
-
 ---
-
 <h2>📌 Contexto Acadêmico</h2>
-
 <p>
-Este projeto foi desenvolvido como Trabalho de Conclusão de Curso (TCC),
-incluindo documentação, banner e apresentação acadêmica.
+Este projeto foi o meu Trabalho de Conclusão de Curso (TCC) do técnico em Informática,
+desenvolvido em equipe com mais três colegas, com liderança minha. Fomos aprovados com nota 9.
 </p>
-
 <p>
 📄 <strong>TCC Completo:</strong><br>
 🔗 <a href="https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing" target="_blank">https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing</a>
 </p>
-
 ---
-
 <h2>👨‍💻 Autor</h2>
-
 <p align="center">
   Desenvolvido por <strong>Daniel Augusto Silva</strong>
 </p>
