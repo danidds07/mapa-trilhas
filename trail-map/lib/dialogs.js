@@ -3,6 +3,17 @@
 //*******************************************************
 export const dialogs = {
     /**
+     * Escape dynamic text before inserting it into an HTML message
+     * @param {String} value
+     * @returns {String} safe HTML text
+     */
+    escape(value) {
+        let element = document.createElement("div");
+        element.textContent = value === undefined || value === null ? "" : String(value);
+        return element.innerHTML;
+    },
+
+    /**
      * Show a dialog element
      * @returns {Element} dialog element
      */
@@ -90,11 +101,16 @@ export const dialogs = {
             let id = "i" + new Date().getTime();
             let dialog = dialogs.show();
             let form = document.createElement("form");
-            form.innerHTML = `
-                ${message}<br>
-                <input id='${id}' type='${type}' value='${value}' required>
-                <hr>
-            `;
+            let messageElement = document.createElement("div");
+            messageElement.innerHTML = message;
+            let input = document.createElement("input");
+            input.id = id;
+            input.type = type;
+            input.value = value;
+            input.required = true;
+            form.appendChild(messageElement);
+            form.appendChild(input);
+            form.appendChild(document.createElement("hr"));
             dialog.appendChild(form);
             dialog.oncancel = (event) => {
                 event.preventDefault();
@@ -110,7 +126,7 @@ export const dialogs = {
             form.onsubmit = (event) => {
                 event.preventDefault();
                 dialog.close();
-                resolve(form.querySelector("#"+id).value);
+                resolve(input.value);
             };
             form.appendChild(confirm);
             let cancel = document.createElement("button");

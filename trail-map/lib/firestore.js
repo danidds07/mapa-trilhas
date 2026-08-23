@@ -147,10 +147,10 @@ export const firestore = {
      * Load collection
      * @param {string} collectionName
      * @param {Object} condition (optional) { field: {String}, operator: {String}, value: {Object} }
-     * @returns {Promise} resolve(array{id,data}) - Success | resolve([]) - Fail
+     * @returns {Promise} resolve(array{id,data}) - Success | reject(error) - Fail
      */
     loadCollection(collectionName, condition1, condition2, condition3, condition4) {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             let list = {};
             try {
                 let q;
@@ -178,7 +178,7 @@ export const firestore = {
                 });
                 resolve(list);
             } catch(error) {
-                resolve(list);
+                reject(error);
             }        
         });
     }

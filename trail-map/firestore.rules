@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /trilha/{trilhaId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll([
+          'titulo', 'lat', 'lng', 'vertices', 'userId', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'titulo', 'lat', 'lng', 'vertices', 'userId', 'createdAt'
+        ])
+        && request.resource.data.titulo is string
+        && request.resource.data.titulo.size() > 0
+        && request.resource.data.titulo.size() <= 100
+        && request.resource.data.lat is number
+        && request.resource.data.lat >= -90
+        && request.resource.data.lat <= 90
+        && request.resource.data.lng is number
+        && request.resource.data.lng >= -180
+        && request.resource.data.lng <= 180
+        && request.resource.data.vertices is string
+        && request.resource.data.vertices.size() > 0
+        && request.resource.data.vertices.size() <= 200000
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAt.size() <= 40;
+
+      allow update: if false;
+
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+  }
+}

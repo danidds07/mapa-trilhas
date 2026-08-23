@@ -126,7 +126,10 @@ export const app = {
             this.bEncerra.onclick = async () => {
                 if (this.verticesTrilha.length >= 2) {
                     let titulo = await dialogs.prompt("Digite um título para a trilha:", "text");
-                    if (titulo !== null && titulo.trim() !== "") {
+                    titulo = titulo === null ? null : titulo.trim();
+                    if (titulo !== null && titulo.length > 100) {
+                        await dialogs.alert("O título deve ter no máximo 100 caracteres.");
+                    } else if (titulo !== null && titulo !== "") {
                         wait.show();
                         try {
                             let medLat = 0;
@@ -140,19 +143,18 @@ export const app = {
 
                             let currentUser = this.firebase.auth.currentUser();
                             let data = {
-                                titulo: titulo.trim(),
-                                lat: medLat.toFixed(6),
-                                lng: medLng.toFixed(6),
+                                titulo: titulo,
+                                lat: Number(medLat.toFixed(6)),
+                                lng: Number(medLng.toFixed(6)),
                                 vertices: JSON.stringify(this.verticesTrilha),
-                                userId: currentUser ? currentUser.uid : null,
-                                userEmail: currentUser ? currentUser.email : null,
+                                userId: currentUser.uid,
                                 createdAt: new Date().toISOString()
                             };
-                            let docRef = await firestore.add("trilha", data);
-                            await dialogs.alert("A trilha <b>" + titulo + "</b> foi gravada com sucesso!");
+                            await firestore.add("trilha", data);
+                            await dialogs.alert("A trilha <b>" + dialogs.escape(titulo) + "</b> foi gravada com sucesso!");
                             await this.getTrilhas();
                         } catch (err) {
-                            await dialogs.alert("Erro ao gravar a trilha: " + err);
+                            await dialogs.alert("Erro ao gravar a trilha: " + dialogs.escape(err.message || err));
                         } finally {
                             wait.hide();
                         }
@@ -195,7 +197,10 @@ export const app = {
             };
 
             //Function on firebase authentication state changed
-            this.firebase.auth.authStateChanged(() => this.refreshMenu());
+            this.firebase.auth.authStateChanged(() => {
+                this.refreshMenu();
+                if (this.player) this.getTrilhas();
+            });
 
             //Inicia o mapa com limites corretos de zoom para o OpenTopoMap
             this.mapa = L.map('mapa', { 
@@ -330,52 +335,66 @@ export const app = {
 
     refreshMenu() {
         let user = firebase.auth.currentUser();
+        let defaultPhotoURL = "data:image/svg+xml;base64," + btoa("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>&#x1F464;</text></svg>");
         if (user === null) {
             //Menu de login (Usuário não autenticado)
-            this.userMenu.querySelector("#currentUser").innerHTML = "";
-            this.userMenu.querySelector("button > img").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
+            this.userMenu.querySelector("#currentUser").textContent = "";
+            this.userMenu.querySelector("button > img").src = defaultPhotoURL;
         } else {
             //Menu de logout (Usuário já autenticado)
-            this.userMenu.querySelector("#currentUser").innerHTML = user.displayName ? user.displayName : user.email;
-            this.userMenu.querySelector("button > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
+            this.userMenu.querySelector("#currentUser").textContent = user.displayName ? user.displayName : user.email;
+            this.userMenu.querySelector("button > img").src = user.photoURL ? user.photoURL : defaultPhotoURL;
         }
     }, //refreshMenu
 
     async getTrilhas() {
         //Obtém a div para exibir as trilhas
         let trilhasProx = document.querySelector("#trilhasProx");
-        if (!trilhasProx) return;
-        trilhasProx.innerHTML = "";
+        if (!trilhasProx || !this.player) return;
+        trilhasProx.textContent = "";
         //Obtém as coordenadas do jogador
         let coord = this.player.getLatLng();
         //Obtém as trilhas próximas
-        this.trilhas = await firestore.loadCollection("trilha");
+        try {
+            this.trilhas = await firestore.loadCollection("trilha");
+        } catch (error) {
+            console.error("Erro ao carregar trilhas:", error);
+            trilhasProx.innerHTML = "<p style='font-size:0.85rem;color:#b71c1c;text-align:center;margin:10px 0;'>Não foi possível carregar as trilhas.<br><small>Tente novamente em instantes.</small></p>";
+            return;
+        }
 
         let encontrou = false;
+        let currentUser = this.firebase.auth.currentUser();
         for(let id in this.trilhas) {
             let trilha = this.trilhas[id];
-            if(trilha.lat >= (coord.lat - 0.1) && trilha.lat <= (coord.lat + 0.1)) {
+            let trilhaLat = Number(trilha.lat);
+            let trilhaLng = Number(trilha.lng);
+            let estaProxima = Number.isFinite(trilhaLat) && Number.isFinite(trilhaLng)
+                    && Math.abs(trilhaLat - coord.lat) <= 0.1
+                    && Math.abs(trilhaLng - coord.lng) <= 0.1;
+            if(estaProxima) {
                 encontrou = true;
                 let itemDiv = document.createElement("div");
                 itemDiv.className = "trilha-item";
 
                 let button = document.createElement("button");
                 button.className = "btn-trilha";
-                button.innerHTML = "📍 " + trilha.titulo;
+                button.textContent = "📍 " + trilha.titulo;
                 button.title = "Visualizar trilha " + trilha.titulo;
                 button.onclick = () => {
                     this.showTrilha(id);
                     this.toggleMenu(false);
                 };
 
-                let delButton = document.createElement("button");
-                delButton.className = "btn-delete";
-                delButton.innerHTML = "🗑️";
-                delButton.title = "Excluir trilha " + trilha.titulo;
-                delButton.onclick = () => this.deleteTrilha(id, trilha.titulo);
-
                 itemDiv.appendChild(button);
-                itemDiv.appendChild(delButton);
+                if (currentUser !== null && trilha.userId === currentUser.uid) {
+                    let delButton = document.createElement("button");
+                    delButton.className = "btn-delete";
+                    delButton.textContent = "🗑️";
+                    delButton.title = "Excluir trilha " + trilha.titulo;
+                    delButton.onclick = () => this.deleteTrilha(id, trilha.titulo);
+                    itemDiv.appendChild(delButton);
+                }
                 trilhasProx.appendChild(itemDiv);
             } else {
                 delete(this.trilhas[id]);
@@ -388,7 +407,15 @@ export const app = {
     },
 
     async deleteTrilha(id, titulo) {
-        if (await dialogs.confirm(`Deseja excluir permanentemente a trilha <b>${titulo}</b>?`)) {
+        let currentUser = this.firebase.auth.currentUser();
+        let trilha = this.trilhas ? this.trilhas[id] : null;
+        if (currentUser === null || trilha === null || trilha === undefined || trilha.userId !== currentUser.uid) {
+            await dialogs.alert("Você não tem permissão para excluir esta trilha.");
+            return;
+        }
+
+        let tituloSeguro = dialogs.escape(titulo);
+        if (await dialogs.confirm(`Deseja excluir permanentemente a trilha <b>${tituloSeguro}</b>?`)) {
             try {
                 wait.show();
                 await firestore.del("trilha", id);
@@ -397,9 +424,9 @@ export const app = {
                     this.linhaTrilha = null;
                 }
                 await this.getTrilhas();
-                await dialogs.alert(`A trilha <b>${titulo}</b> foi excluída com sucesso.`);
+                await dialogs.alert(`A trilha <b>${tituloSeguro}</b> foi excluída com sucesso.`);
             } catch (err) {
-                await dialogs.alert("Erro ao excluir trilha: " + err);
+                await dialogs.alert("Erro ao excluir trilha: " + dialogs.escape(err.message || err));
             } finally {
                 wait.hide();
             }
@@ -410,8 +437,22 @@ export const app = {
         let trilha = this.trilhas[id];
         if (!trilha) return;
         if (this.linhaTrilha !== null) this.mapa.removeLayer(this.linhaTrilha);
-        
-        const vertices = JSON.parse(trilha.vertices);
+
+        let vertices;
+        try {
+            vertices = JSON.parse(trilha.vertices);
+            if (!Array.isArray(vertices) || vertices.length < 2) throw new Error();
+            vertices = vertices.map((vertice) => ({
+                lat: Number(vertice.lat),
+                lng: Number(vertice.lng)
+            }));
+            if (vertices.some((vertice) => !Number.isFinite(vertice.lat) || !Number.isFinite(vertice.lng)
+                    || Math.abs(vertice.lat) > 90 || Math.abs(vertice.lng) > 180)) throw new Error();
+        } catch (error) {
+            dialogs.alert("Os pontos desta trilha estão inválidos e não podem ser exibidos.");
+            return;
+        }
+
         this.linhaTrilha = new L.polyline(vertices, {
             color: '#E53935',
             weight: 4,
@@ -431,7 +472,7 @@ export const app = {
         //Popup com detalhes da trilha
         this.linhaTrilha.bindPopup(`
             <div style="font-family:sans-serif;min-width:140px;padding:2px;">
-                <h4 style="margin:0 0 6px 0;color:#d32f2f;">📍 ${trilha.titulo}</h4>
+                <h4 style="margin:0 0 6px 0;color:#d32f2f;">📍 ${dialogs.escape(trilha.titulo)}</h4>
                 <div style="font-size:0.85rem;line-height:1.5;">
                     <b>Distância:</b> ${distStr}<br>
                     <b>Pontos GPS:</b> ${vertices.length}

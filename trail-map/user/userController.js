@@ -54,11 +54,11 @@ export const userController = {
                     wait.show();
                     try{
                         await this.auth.resetPassword(email);
-                        await dialogs.alert("E-mail para restauração da senha enviado para <b>"+email+"</b>.<br>Verifique sua Caixa de Entrada e seus Spams.");
+                        await dialogs.alert("E-mail para restauração da senha enviado para <b>"+dialogs.escape(email)+"</b>.<br>Verifique sua Caixa de Entrada e seus Spams.");
                         dialog.close();
                         resolve();
                     } catch (error) {
-                        await dialogs.alert(error.message);
+                        await dialogs.alert(dialogs.escape(error.message));
                     } finally {
                         wait.hide();
                     }
@@ -76,7 +76,7 @@ export const userController = {
                     dialog.close();
                     resolve();
                 } catch(error) {
-                    await dialogs.alert(error.message);
+                    await dialogs.alert(dialogs.escape(error.message));
                 } finally {
                     wait.hide();
                 }
@@ -95,7 +95,7 @@ export const userController = {
             form.innerHTML = this.html.querySelector("#logout").innerHTML;
             let user = this.auth.auth.currentUser;
             if(user !== null) {
-                form.querySelector("div > div").innerHTML = user.displayName ? user.displayName : user.email;
+                form.querySelector("div > div").textContent = user.displayName ? user.displayName : user.email;
                 form.querySelector("div > img").src = user.photoURL ? user.photoURL : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='52%' dominant-baseline='central' text-anchor='middle' font-size='70'>👤</text></svg>";
             }
             dialog.appendChild(form);
@@ -112,7 +112,7 @@ export const userController = {
                         dialog.close();
                         resolve();
                     } catch(error) {
-                        await dialogs.alert(error.message);
+                        await dialogs.alert(dialogs.escape(error.message));
                     } finally {
                         wait.hide();
                     }
@@ -156,7 +156,7 @@ export const userController = {
                         dialog.close();
                         resolve();
                     } catch(error) {
-                        await dialogs.alert(error.message);
+                        await dialogs.alert(dialogs.escape(error.message));
                     } finally {
                         wait.hide();
                     }
@@ -201,7 +201,7 @@ export const userController = {
                         dialog.close();
                         resolve();
                     } catch (error) {
-                        await dialogs.alert(error.message);
+                        await dialogs.alert(dialogs.escape(error.message));
                     } finally {
                         wait.hide();
                     }
@@ -219,7 +219,7 @@ export const userController = {
                             dialog.close();
                             resolve();
                         } catch (error) {
-                            await dialogs.alert(error.message);
+                            await dialogs.alert(dialogs.escape(error.message));
                         } finally {
                             wait.hide();
                         }
@@ -237,7 +237,7 @@ export const userController = {
                         dialog.close();
                         resolve();
                     } catch (error) {
-                        await dialogs.alert(error.message);
+                        await dialogs.alert(dialogs.escape(error.message));
                     } finally {
                         wait.hide();
                     }
@@ -256,7 +256,7 @@ export const userController = {
                     dialog.close();
                     resolve();
                 } catch(error) {
-                    await dialogs.alert(error.message);
+                    await dialogs.alert(dialogs.escape(error.message));
                 } finally {
                     wait.hide();
                 }
