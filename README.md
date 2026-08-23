@@ -1,84 +1,126 @@
-<h1 align="center">🗺️ Sistema de Mapeamento de Trilhas</h1>
-<p align="center">
-  Aplicação web interativa para mapeamento de trilhas com geolocalização,
-  desenvolvida utilizando HTML, CSS, JavaScript, Leaflet e Firebase.
-</p>
-<p align="center">
-  <img src="https://img.shields.io/badge/frontend-HTML%20%7C%20CSS%20%7C%20JS-blue?style=for-the-badge">
-  <img src="https://img.shields.io/badge/status-concluído-success?style=for-the-badge">
-  <img src="https://img.shields.io/badge/deploy-Firebase-orange?style=for-the-badge">
-</p>
----
-<h2>🚀 Sobre o Projeto</h2>
-<p>
-Aplicação web para explorar trilhas em mapas interativos, com foco em navegação
-e geolocalização em tempo real.
-</p>
-<p>
-O sistema permite ao usuário visualizar trilhas em um mapa dinâmico e acompanhar
-sua própria posição enquanto navega.
-</p>
----
-<h2>🌐 Demonstração Online</h2>
-<p>
-🔗 <a href="https://trilhasapp2024.firebaseapp.com/" target="_blank">https://trilhasapp2024.firebaseapp.com/</a>
-</p>
----
-<h2>🧠 Funcionalidades</h2>
-<ul>
-  <li>🗺️ Visualização interativa de mapas com camadas topográficas</li>
-  <li>📍 Geolocalização em tempo real e rastreamento do usuário</li>
-  <li>🚶‍♂️ Gravação e persistência de novas trilhas no Cloud Firestore</li>
-  <li>🧭 Interface intuitiva, responsiva e com menu lateral retrátil</li>
-  <li>🔐 Autenticação de usuários, perfil customizado e avatares emoji</li>
-  <li>☁️ Hospedagem em nuvem utilizando Firebase</li>
-</ul>
----
-<h2>🛠️ Tecnologias Utilizadas</h2>
-<ul>
-  <li><strong>HTML5:</strong> Estruturação semântica e templates modulares</li>
-  <li><strong>CSS3:</strong> Estilização responsiva e componentes de interface</li>
-  <li><strong>JavaScript (ES Modules):</strong> Lógica cliente em módulos nativos</li>
-  <li><strong>Leaflet.js & OpenTopoMap:</strong> Renderização e manipulação do mapa interativo</li>
-  <li><strong>Firebase:</strong> Authentication e Cloud Firestore</li>
-  <li><strong>Firebase Hosting:</strong> Publicação e deploy contínuo</li>
-</ul>
----
-<h2>📂 Estrutura do Projeto</h2>
-<pre>
+# Trail Map
+
+O Trail Map é uma aplicação web para registrar e visualizar trilhas em um mapa. O projeto nasceu como Trabalho de Conclusão de Curso e reúne geolocalização, mapas interativos, autenticação de usuários e persistência de dados em uma aplicação que roda direto no navegador.
+
+[Abrir a versão publicada](https://trilhasapp2024.firebaseapp.com/)
+
+## O que dá para fazer
+
+- acompanhar sua posição no mapa pelo GPS do dispositivo;
+- iniciar uma nova trilha caminhando ou adicionando pontos manualmente;
+- ver a distância percorrida durante o mapeamento;
+- salvar trilhas no Cloud Firestore;
+- consultar trilhas cadastradas na região;
+- criar uma conta, entrar, editar o perfil e escolher um avatar;
+- excluir as trilhas criadas pela sua conta.
+
+O mapa usa o Leaflet com as camadas topográficas do OpenTopoMap. O Firebase cuida da autenticação, do banco de dados e da hospedagem.
+
+## Tecnologias
+
+- HTML, CSS e JavaScript com ES Modules;
+- Leaflet 1.9.4;
+- OpenTopoMap;
+- Firebase Authentication;
+- Cloud Firestore;
+- Firebase Hosting.
+
+Não há etapa de build nem framework de frontend. As bibliotecas são carregadas por CDN.
+
+## Como executar no computador
+
+Como o projeto usa módulos JavaScript e carrega arquivos HTML com `fetch`, abrir o `index.html` diretamente não é suficiente. Sirva a pasta por HTTP.
+
+Com Python instalado:
+
+```bash
+python -m http.server 5500
+```
+
+Depois, acesse [http://localhost:5500](http://localhost:5500).
+
+O navegador vai pedir acesso à sua localização. Em um computador sem GPS, você ainda pode adicionar pontos clicando no mapa depois de iniciar uma nova trilha.
+
+### Configuração do Firebase
+
+A configuração usada pelo navegador está em `app/app.js` e aponta para o projeto `trilhasapp2024`. A chave de API de uma aplicação web Firebase é pública por definição. A proteção dos dados depende das regras do Firestore, do Firebase Authentication e, quando configurado, do App Check.
+
+Os arquivos `firebase.json`, `.firebaserc` e `firestore.rules` mantêm a configuração do deploy e as regras do banco junto do código. As trilhas têm leitura pública para aparecer no mapa, mas somente usuários autenticados podem criar registros. Cada usuário só pode excluir as próprias trilhas. Alterações diretas em registros existentes são bloqueadas.
+
+Trilhas antigas que não possuem o campo `userId` continuam visíveis, mas precisam ser removidas pelo Console do Firebase caso seja necessário. A aplicação não assume a propriedade desses registros.
+
+## Como publicar uma nova versão
+
+O código curto mostrado na tela de versões do Firebase Hosting, como `13a268`, é o identificador de um deploy. Ele não é a versão do SDK Firebase usada nos arquivos JavaScript.
+
+No Windows, abra o PowerShell dentro da pasta do projeto e instale o Firebase CLI:
+
+```powershell
+npm.cmd install -g firebase-tools
+firebase.cmd login
+```
+
+O projeto já está associado ao `trilhasapp2024`, então não é necessário executar `firebase init`. A configuração também impede que o README, as regras e os documentos acadêmicos sejam publicados junto com a aplicação.
+
+Teste a configuração localmente:
+
+```powershell
+firebase.cmd serve --only hosting
+```
+
+Antes do primeiro deploy desta versão, publique as regras do Firestore:
+
+```powershell
+firebase.cmd deploy --only firestore -m "Protege as trilhas por usuário"
+```
+
+Antes de mexer na versão que está no ar, publique um canal de prévia:
+
+```powershell
+firebase.cmd hosting:channel:deploy revisao --expires 1d
+```
+
+Abra o endereço fornecido pelo comando e teste o carregamento, o login e o mapa. O canal de prévia usa o mesmo Authentication e o mesmo Firestore de produção, então qualquer trilha criada ali também será real. Se precisar testar gravação e exclusão, use um registro de teste e remova-o ao terminar.
+
+Quando estiver satisfeito, publique o site em produção:
+
+```powershell
+firebase.cmd deploy --only hosting -m "Atualiza aplicação"
+```
+
+Esse comando cria uma nova versão no Hosting e passa a servi-la nos endereços `trilhasapp2024.web.app` e `trilhasapp2024.firebaseapp.com`.
+
+## Estrutura do projeto
+
+```text
 trail-map/
-│── app/
-│   ├── app.html         # Template do mapa e menu lateral
-│   └── app.js           # Lógica do mapa e gravação de trilhas
-│── assets/              # Documentos e diagramas de classe
-│── docs/                # Banners e materiais de apresentação
-│── lib/                 # Módulos utilitários (auth, firestore, dialogs, wait)
-│── user/                # Controladores de usuário e perfis
-│── index.html           # Página inicial da aplicação
-│── main.css             # Folha de estilos global
-│── main.js              # Ponto de entrada
-└── README.md            # Documentação do projeto
-</pre>
----
-<h2>🎯 Objetivos do Projeto</h2>
-<ul>
-  <li>Aplicar conceitos de desenvolvimento web modular, com HTML, CSS e JS em módulos nativos</li>
-  <li>Usar a Geolocation API do navegador para rastrear a posição do usuário em tempo real</li>
-  <li>Integrar mapas interativos (Leaflet.js) com um banco de dados em nuvem (Cloud Firestore)</li>
-  <li>Entregar uma aplicação funcional como Trabalho de Conclusão de Curso</li>
-</ul>
----
-<h2>📌 Contexto Acadêmico</h2>
-<p>
-Este projeto foi o meu Trabalho de Conclusão de Curso (TCC) do técnico em Informática,
-desenvolvido em equipe com mais três colegas, com liderança minha. Fomos aprovados com nota 9.
-</p>
-<p>
-📄 <strong>TCC Completo:</strong><br>
-🔗 <a href="https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing" target="_blank">https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing</a>
-</p>
----
-<h2>👨‍💻 Autor</h2>
-<p align="center">
-  Desenvolvido por <strong>Daniel Augusto Silva</strong>
-</p>
+|-- app/
+|   |-- app.html          # Elementos do mapa e do menu
+|   `-- app.js            # Geolocalização, trilhas e integração principal
+|-- assets/               # Diagramas do projeto
+|-- docs/                 # Material da apresentação acadêmica
+|-- lib/
+|   |-- auth.js           # Operações de autenticação
+|   |-- dialogs.js        # Diálogos da interface
+|   |-- firebase.js       # Inicialização do Firebase
+|   |-- firestore.js      # Operações no Firestore
+|   `-- wait.js           # Indicador de carregamento
+|-- user/
+|   |-- userController.js # Cadastro, login e perfil
+|   `-- userUI.html       # Formulários do usuário
+|-- .firebaserc           # Projeto Firebase usado pelo CLI
+|-- firebase.json         # Configuração do Hosting e do Firestore
+|-- firestore.rules       # Regras de acesso às trilhas
+|-- index.html
+|-- main.css
+|-- main.js
+`-- README.md
+```
+
+## Contexto acadêmico
+
+O projeto foi desenvolvido como TCC e possui material de apresentação e diagramas dentro do repositório. O texto completo do trabalho está disponível neste [documento do Google](https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing).
+
+## Autor
+
+Desenvolvido por Daniel Augusto Silva.
