@@ -1,83 +1,79 @@
+**English** | [Português](README.pt-BR.md)
+
 # Trail Map
 
-Aplicação web para registrar trilhas e depois visualizá-las num mapa. Foi meu Trabalho
-de Conclusão de Curso: juntei geolocalização, mapa interativo, login de usuário e
-persistência de dados numa aplicação que roda direto no navegador.
+A web app to record hiking trails and view them on a map. It was my final project for my IT technical program: I combined geolocation, an interactive map, user login and data persistence in an app that runs straight in the browser.
 
-[Abrir a versão publicada](https://trilhasapp2024.firebaseapp.com/)
+The idea came from a real problem in the Jaboticabal region, in Brazil: many local trails are only known by people who already walk them. With Trail Map, someone who knows a trail records it with GPS and shares it so others can follow the same path.
 
-## O que dá para fazer
+[Open the live version](https://trilhasapp2024.firebaseapp.com/)
 
-- acompanhar sua posição no mapa pelo GPS do dispositivo;
-- iniciar uma nova trilha caminhando ou adicionando pontos manualmente;
-- ver a distância percorrida durante o mapeamento;
-- salvar trilhas no Cloud Firestore;
-- consultar trilhas cadastradas na região;
-- criar uma conta, entrar, editar o perfil e escolher um avatar;
-- excluir as trilhas criadas pela sua conta.
+## What you can do
 
-O mapa usa o Leaflet com as camadas topográficas do OpenTopoMap. O Firebase cuida da
-autenticação, do banco de dados e da hospedagem.
+- follow your position on the map using the device's GPS;
+- start a new trail by walking or by adding points manually;
+- see the distance covered while mapping;
+- save trails to Cloud Firestore;
+- browse trails registered in the region;
+- create an account, sign in, edit your profile and pick an avatar;
+- delete trails created by your account.
 
-## Tecnologias
+The map uses Leaflet with OpenTopoMap topographic layers. Firebase handles authentication, the database and hosting.
 
-- HTML, CSS e JavaScript com ES Modules;
+## Tech stack
+
+- HTML, CSS and JavaScript with ES Modules;
 - Leaflet 1.9.4;
 - OpenTopoMap;
 - Firebase Authentication;
 - Cloud Firestore;
 - Firebase Hosting.
 
-Não há etapa de build nem framework de frontend. As bibliotecas são carregadas por CDN.
+There is no build step and no frontend framework. Libraries are loaded from a CDN.
 
-## Como executar no computador
+## Running locally
 
-Como o projeto usa módulos JavaScript e carrega arquivos HTML com `fetch`, abrir o
-`index.html` diretamente não é suficiente. Sirva a pasta por HTTP.
+Because the project uses JavaScript modules and loads HTML files with `fetch`, opening `index.html` directly is not enough. Serve the folder over HTTP.
 
-Com Python instalado:
+With Python installed:
 ```bash
 python -m http.server 5500
 ```
 
-Depois, acesse [http://localhost:5500](http://localhost:5500).
+Then open [http://localhost:5500](http://localhost:5500).
 
-O navegador vai pedir acesso à sua localização. Em um computador sem GPS, você ainda
-pode adicionar pontos clicando no mapa depois de iniciar uma nova trilha.
+The browser will ask for access to your location. On a computer without GPS, you can still add points by clicking the map after starting a new trail.
 
-## Estrutura do projeto
+## Project structure
 ```text
 trail-map/
 |-- app/
-|   |-- app.html          # Elementos do mapa e do menu
-|   `-- app.js            # Geolocalização, trilhas e integração principal
-|-- assets/               # Diagramas do projeto
-|-- docs/                 # Material da apresentação acadêmica
+|   |-- app.html          # Map and menu elements
+|   `-- app.js            # Geolocation, trails and main integration
+|-- assets/               # Project diagrams
+|-- docs/                 # Academic presentation material
 |-- lib/
-|   |-- auth.js           # Operações de autenticação
-|   |-- dialogs.js        # Diálogos da interface
-|   |-- firebase.js       # Inicialização do Firebase
-|   |-- firestore.js      # Operações no Firestore
-|   `-- wait.js           # Indicador de carregamento
+|   |-- auth.js           # Authentication operations
+|   |-- dialogs.js        # Interface dialogs
+|   |-- firebase.js       # Firebase initialization
+|   |-- firestore.js      # Firestore operations
+|   `-- wait.js           # Loading indicator
 |-- user/
-|   |-- userController.js # Cadastro, login e perfil
-|   `-- userUI.html       # Formulários do usuário
-|-- .firebaserc           # Projeto Firebase usado pelo CLI
-|-- firebase.json         # Configuração do Hosting e do Firestore
-|-- firestore.rules       # Regras de acesso às trilhas
+|   |-- userController.js # Sign-up, sign-in and profile
+|   `-- userUI.html       # User forms
+|-- .firebaserc           # Firebase project used by the CLI
+|-- firebase.json         # Hosting and Firestore configuration
+|-- firestore.rules       # Access rules for trails
 |-- index.html
 |-- main.css
 |-- main.js
 `-- README.md
 ```
 
-## Contexto acadêmico
+## Academic context
 
-Foi meu TCC do técnico em Informática, feito em equipe com mais três colegas (eu como
-líder do grupo). Fomos aprovados com nota 9. O repositório tem o material de
-apresentação e os diagramas do projeto, e o texto completo do trabalho está neste
-[documento do Google](https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing).
+This was my final project for the IT technical program, built with three classmates, with me as team lead. It was approved with a grade of 9 out of 10, tested on 3 real trails and selected for presentation at COTUCA, in Campinas. The repository includes the presentation material and project diagrams, and the full written report (in Portuguese) is in this [Google document](https://docs.google.com/document/d/1M1xf7TWg6O3uCA8R9Qm7mECjuBNUaH_jo0MSsFUL4WE/edit?usp=sharing).
 
-## Autor
+## Author
 
-Desenvolvido por Daniel Augusto Silva.
+Developed by Daniel Augusto Silva.
